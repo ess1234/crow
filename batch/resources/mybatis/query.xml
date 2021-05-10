@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="query">
+	<!-- 리절트 맵 정의 -->
+	<resultMap id="result" type="java.util.HashMap" />
+	<parameterMap id="param" type="java.util.HashMap" />
+	
+	<select id="getDomainList" parameterMap="param" resultMap="result">
+	<![CDATA[
+		select 	DOMAIN_SEQ, 
+				DOMAIN, 
+				REQUEST_USER, 
+				REG_DTS
+				 
+		from 
+				crawling.domain 
+		where 1=1
+	]]>
+		<if test="crawlingState != null and crawlingState != ''">
+		     <![CDATA[
+		      	AND CRAWLING_STATE = #{crawlingState}
+		     ]]>
+		</if>
+	</select>
+	
+	
+	<update id="updateDomainStatus" parameterMap="param">
+  	<![CDATA[
+		UPDATE crawling.domain
+		SET 
+	]]>
+		<if test="crawlingState != null and crawlingState != ''">
+	     <![CDATA[
+	      	CRAWLING_STATE = #{crawlingState},
+	     ]]>
+	     	<if test="crawlingState == 'ING'">
+		     <![CDATA[
+		      	START_DTS = NOW(),
+		     ]]>
+		     </if>
+		     <if test="crawlingState == 'END'">
+		     <![CDATA[
+		      	END_DTS = NOW(),
+		     ]]>
+			</if>
+		</if>
+	<![CDATA[
+			DOMAIN_SEQ=DOMAIN_SEQ
+		WHERE
+				DOMAIN_SEQ = #{domainSeq}
+	]]>
+	</update>
+	
+	<insert id="insertCrawlingData" parameterMap="param">
+	<![CDATA[
+		insert into crawling.url_dir 
+			(CRAWLING_SEQ, DOMAIN_SEQ, PARENT_SEQ, URL, LINK_CNT, STATUS)
+		values
+			(#{crawlingSeq}, #{domainSeq}, #{parentSeq}, #{url}, #{linkCnt}, #{status});
+	]]>
+	</insert>
+	
+	<select id="getCrawlingList" parameterMap="param" resultMap="result">
+	<![CDATA[
+		select CRAWLING_SEQ,
+			   DOMAIN_SEQ,
+			   PARENT_SEQ,
+			   URL,
+			   LINK_CNT,
+			   STATUS,
+			   REG_DTS
+		from crawling.url_dir 
+		where domain_seq = #{domainSeq} 
+		order by PARENT_SEQ, CRAWLING_SEQ
+	]]>
+	</select>
+	
+	<insert id="insertUrl" parameterMap="param"  useGeneratedKeys="true" keyProperty="URL_SEQ">
+	<![CDATA[
+		insert into crawling.url_atag
+			(DOMAIN_SEQ, PARENT_SEQ, URL, TARGET_URL, LINK_CNT, STATUS)
+		values
+			(#{domainSeq},  #{parentSeq}, #{url}, #{targetUrl}, #{linkCnt}, #{status})
+	]]>
+	<selectKey keyProperty="urlSeq" resultType="java.lang.String" order="AFTER">
+			SELECT LAST_INSERT_ID()	
+		</selectKey>
+	</insert>
+	
+	<select id="getUrls" parameterMap="param" resultMap="result">
+	<![CDATA[
+		select DOMAIN_SEQ,
+			   URL_SEQ,
+			   URL,
+			   LINK_CNT,
+			   STATUS,
+			   REG_DTS
+		from crawling.url_atag
+		where domain_seq = #{domainSeq} 
+		order by URL
+	]]>
+	</select>
+	
+	<insert id="insertSubDomain" parameterMap="param">
+	<![CDATA[
+		insert into crawling.sub_domain 
+			(DOMAIN_SEQ, SUB_DOMAIN)
+		values
+			(#{domainSeq}, #{subDomain})
+	]]>
+	</insert>
+	
+	<insert id="insertDirData" parameterMap="param">
+	<![CDATA[
+		insert into crawling.url_dir 
+			( DOMAIN_SEQ, PARENT_SEQ, CRAWLING_SEQ, URL, LINK_CNT, STATUS, REG_DTS)
+		values
+			(#{domainSeq}, #{parentSeq}, #{crawlingSeq}, #{url}, (select max(LINK_CNT) from url_atag where DOMAIN_SEQ = #{domainSeq} and URL= #{url} ), (select max(STATUS) from url_atag 		where DOMAIN_SEQ = #{domainSeq} and URL= #{url} ), now())
+	]]>
+	</insert>
+	
+	<insert id="insertNav" parameterMap="param"  useGeneratedKeys="true" keyProperty="NAV_SEQ">
+	<![CDATA[
+		insert into crawling.url_nav 
+			(DOMAIN_SEQ, PARENT_SEQ, URL, TARGET_URL, LINK_CNT, STATUS, PATH, TITLE)
+		values
+			(#{domainSeq},  #{parentSeq}, #{url}, #{targetUrl}, #{linkCnt}, #{status}, #{navPath}, #{title})
+	]]>
+	<selectKey keyProperty="navSeq" resultType="java.lang.String" order="AFTER">
+			SELECT LAST_INSERT_ID()	
+		</selectKey>
+	</insert>
+	
+	<select id="checkCrawling" parameterMap="param" resultType="java.lang.Integer">
+	<![CDATA[
+		SELECT count(*) FROM url_atag WHERE STATUS !=0
+	]]>
+		<if test="domainSeq != null and domainSeq != ''">
+		     <![CDATA[
+		      	AND DOMAIN_SEQ = #{domainSeq} 
+		     ]]>
+		</if>
+	</select>
+	
+</mapper>
