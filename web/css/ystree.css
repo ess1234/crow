@@ -1,0 +1,16 @@
+.ystree ul {margin:0; padding:0; list-style:none;}
+.ystree li {margin:0; padding:3px 0 3px 20px; position:relative; background:url('../images/line2.gif') repeat-y;}
+.ystree li.ystree-folder {background:url('../images/line.gif') repeat-y;}
+.ystree li.ystree-last{background:url('../images/lineEnd.gif') no-repeat;}
+.ystree li ul {display:none;}
+.ystree .ystree-opened > ul {display:block;}
+.ystree .ystree-show {display:block; position:absolute; top:8px; left:4px; width:30px; height:9px; z-index:10;background:url('../images/plus.gif') no-repeat; cursor:pointer;}
+.ystree .ystree-opened > .ystree-show {background:url('../images/minus.gif') no-repeat;}
+
+.ystree .ystree-icon {display:inline-block; *display:inline; *zoom:1; width:18px; height:18px; vertical-align:middle; background:url('../images/leaf.gif');}
+.ystree .ystree-folder > .ystree-icon {background:url('../images/folderClosed.gif');}
+.ystree .ystree-opened > .ystree-icon {background:url('../images/folderOpen.gif');}
+.ystree .ystree-link {color:#000; text-decoration:none; padding-left:3px;}
+.ystree a.ystree-link:hover {text-decoration:underline;}
+.ystree .ystree-error {color:#999 !important;text-decoration:line-through;}
+.ystree .ystree-cnt {padding:0 3px; color:#00aff9; font-size:11px;}
